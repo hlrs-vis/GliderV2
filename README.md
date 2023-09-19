@@ -1,2 +1,2 @@
-# GliderV2
-esp32 Glider interface V2
+# Skateboard
+Skateboard interface for VR
