@@ -4,6 +4,7 @@
 #include <ESP32Encoder.h>
 
 #define DeviceName "GliderV2"
+#define PluginName "JSBSim"
 #define ESP_ASYNC_WIFIMANAGER_VERSION_MIN_TARGET     "ESPAsync_WiFiManager v1.9.2"
 #define _ESPASYNC_WIFIMGR_LOGLEVEL_    3    // Use from 0 to 4. Higher number, more debugging messages and memory usage.
                         //For ESP32, To use ESP32 Dev Module, QIO, Flash 4MB/80MHz, Upload 921600
@@ -186,7 +187,7 @@ void sendDeviceInfo(IPAddress destinationAddress)
 {
   char buffer[100];
   toCOVER.beginPacket(destinationAddress, coverPort);
-  strcpy(buffer, "devInfo " DeviceName);
+  strcpy(buffer, "devInfo:     DeviceName = " DeviceName "    PluginName = " PluginName);
   Serial.println(buffer);
   toCOVER.write((const uint8_t *)&buffer, strlen(buffer) + 1);
   toCOVER.endPacket();
