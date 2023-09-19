@@ -187,7 +187,7 @@ void sendDeviceInfo(IPAddress destinationAddress)
 {
   char buffer[100];
   toCOVER.beginPacket(destinationAddress, coverPort);
-  strcpy(buffer, "devInfo:" DeviceName " " PluginName);
+  strcpy(buffer, "devInfo " PluginName " " DeviceName );
   Serial.println(buffer);
   toCOVER.write((const uint8_t *)&buffer, strlen(buffer) + 1);
   toCOVER.endPacket();
