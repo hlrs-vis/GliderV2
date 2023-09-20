@@ -20,6 +20,13 @@ WiFiMulti wifiMulti;
 #include "FS.h"         // Use LittleFS
 #include <LITTLEFS.h> 
 
+#include <WiFiUdp.h>
+#include "debounceButton.h"
+
+//debounceButton configButton(27);
+
+ulong lastWorkingTime = 0;
+
 FS *filesystem = &LITTLEFS;
 #define FileFS LITTLEFS
 #define FS_Name "LittleFS"
@@ -106,13 +113,6 @@ ESP32Encoder encoderangle;
 #define PIN_SCL 22 // Pin SCL mapped to pin GPIO22/SCL of ESP32
 #define PIN_SDA 21 // Pin SDA mapped to pin GPIO21/SDA of ESP32
 
-#include <WiFiUdp.h>
-#include "debounceButton.h"
-
-//debounceButton configButton(27);
-
-ulong lastWorkingTime = 0;
-
 
 void doSleep();
 /*
@@ -165,7 +165,7 @@ void calcZeroOffset()
         {
           zeroOffset[n] = reading;
         }
-        else
+        elseu
         {
           zeroOffset[n] = (float)(i - 1) / float(i) * zeroOffset[n] + 1.0 / float(i) * zeroOffset[n];
         }
@@ -200,10 +200,7 @@ struct messageBuffer
   float right;
   float angle;
   float speed;
-  unsigned long state; //warum unsigned long?
-  int status;
-  int counter;
-  int zaehler;
+  uint32_t state; 
 };
 
 struct messageBuffer mb;
@@ -1226,29 +1223,27 @@ void loop()
 **********************************************************************************************************************************************************************************************/
 
 //lrButton
-  mb.status = 0;
   if(lrButton.wasKlicked())
   { 
     lastWorkingTime=frameTime;
     Serial.printf("lrButton was Klicked\n");
-    mb.status = 1;
+    mb.state |= 4;
   }
   
   if(lrButton.wasDoubleKlicked())
   {
     lastWorkingTime=frameTime;
     Serial.printf("lrButton was Double Klicked\n");
-    mb.status = 2;
+    mb.state |= 8;
   }
 
 //angleButton
-  mb.counter = 0;
  if(angleButton.wasKlicked())
   { 
     lastWorkingTime=frameTime;
     Serial.printf("angleButton was Klicked\n");
     encoderangle.setCount (0);
-    mb.counter = 1;
+    mb.state |= 16;
   }
   /*
   //speedButton_noch nicht da
@@ -1272,15 +1267,15 @@ void loop()
   //Counter des Drehgebers lesen und in mb schreiben 
   
   long Positionleft = encoderleft.getCount() / 2;
-  Serial.println(Positionleft);
+  //Serial.println(Positionleft); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
   mb.left = Positionleft;
 
   long Positionright = encoderright.getCount() / 2;
-  Serial.println(Positionright);
+  //Serial.println(Positionright); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
   mb.right = Positionright;
 
   long Positionangle = encoderangle.getCount() / 2;
-  Serial.println(Positionangle);
+  //Serial.println(Positionangle); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
   mb.angle = Positionangle;
 
   //long Positionspeed = encoderspeed.getCount() / 2;
