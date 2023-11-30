@@ -2,6 +2,7 @@
 #include <esp_task_wdt.h>
 #include <math.h>
 #include <ESP32Encoder.h>
+#include <string.h>
 
 #define DeviceName "GliderV2"
 #define PluginName "JSBSim"
@@ -37,24 +38,26 @@ FS *filesystem = &LITTLEFS;
 #define LED_OFF HIGH
 
 /************************************************************************************************************************************************************************************************
-Bei #define CLK & DT werden die input pins angegeben. Werden diese vertauscht, dann ändert sich das Vorzeichen.
+Bei #define A_0? und B_0? werden die input pins angegeben. Werden diese vertauscht, dann ändert sich das Vorzeichen.
 ************************************************************************************************************************************************************************************************/
-#define CLK_01 21 // CLK ENCODERLEFT
-#define DT_01 2 // DT ENCODERLEFT
+#define A_01 14 // A ENCODERLEFT
+#define B_01 4 // B ENCODERLEFT
 
-#define CLK_02 14 // CLK ENCODERRIGHT
-#define DT_02 4 // DT ENCODERRIGHT
+#define A_02 21 // A ENCODERRIGHT
+#define B_02 2 // B ENCODERRIGHT
 
-#define CLK_03 27 // CLK ENCODERANGLE
-#define DT_03 22 // DT ENCODERANGLE
+#define A_03 27 // A ENCODERANGLE
+#define B_03 22 // B ENCODERANGLE
 
-//#define CLK_04 ?? // CLK ENCODERSPEED
-//#define DT_04 ?? // DT ENCODERSPEED
+//#define A_04 ?? // A ENCODERSPEED
+//#define B_04 ?? // B ENCODERSPEED
 
 ESP32Encoder encoderleft;
 ESP32Encoder encoderright;
 ESP32Encoder encoderangle;
 //ESP32Encoder encoderspeed;
+
+int leftmax = 1400, rightmax = 1400, speedmax = 1400
 
 
 //See file .../hardware/espressif/esp32/variants/(esp32|doitESP32devkitV1)/pins_arduino.h
@@ -113,8 +116,8 @@ ESP32Encoder encoderangle;
 #define PIN_SCL 22 // Pin SCL mapped to pin GPIO22/SCL of ESP32
 #define PIN_SDA 21 // Pin SDA mapped to pin GPIO21/SDA of ESP32
 
-
 void doSleep();
+
 /*
 // HX711 circuit wiring
 const int S0_DOUT_PIN = 32;
@@ -127,6 +130,10 @@ const int S3_DOUT_PIN = 19;
 const int S3_SCK_PIN = 18;
 */
 //const int numSensors = 4;
+
+/************************************************************************************************************************************************************************************************
+  in Arbeit
+************************************************************************************************************************************************************************************************/
 
 //long zeroOffset[numSensors];
 const int ZeroPin = 25;
@@ -179,7 +186,7 @@ void calcZeroOffset()
 }
 */
 const int coverPort = 31319;
-const int pluginPort = 31320;
+const int pluginPort = 1234;
 WiFiUDP toCOVER;
 IPAddress coverIP((uint32_t)0);
 
@@ -193,13 +200,16 @@ void sendDeviceInfo(IPAddress destinationAddress)
   toCOVER.endPacket();
 }
 
+/************************************************************************************************************************************************************************************************
+  in Arbeit
+************************************************************************************************************************************************************************************************/
 
 struct messageBuffer
 {
-  float left;
-  float right;
-  float angle;
-  float speed;
+  int32_t left;
+  int32_t right;
+  int32_t angle;
+  int32_t speed;
   uint32_t state; 
 };
 
@@ -785,6 +795,10 @@ void startConfigAP()
 
 }
 
+/************************************************************************************************************************************************************************************************
+  in Arbeit
+************************************************************************************************************************************************************************************************/
+
 void ai0() {
 
   if(digitalRead(32) == HIGH)
@@ -1118,6 +1132,9 @@ void setup()
   
   toCOVER.begin(coverPort);
   
+  /************************************************************************************************************************************************************************************************
+   in Arbeit
+  ************************************************************************************************************************************************************************************************/
   zeroButton.init(true);
 
   lrButton.init(true);
@@ -1132,19 +1149,16 @@ void setup()
 
   sendDeviceInfo(WiFi.broadcastIP());
 
-  /*********************************************************************************************************************************************************************************************
-      V
-  *********************************************************************************************************************************************************************************************/
-  encoderleft.attachHalfQuad ( DT_01, CLK_01);
+  encoderleft.attachFullQuad (B_01, A_01); // jetzt mal "attachFullQuad" statt "attachHalfQuad"
   encoderleft.setCount (0);
 
-  encoderright.attachHalfQuad ( DT_02, CLK_02);
+  encoderright.attachFullQuad (B_02, A_02);
   encoderright.setCount (0);
 
-  encoderangle.attachHalfQuad ( DT_03, CLK_03);
+  encoderangle.attachFullQuad (B_03, A_03);
   encoderangle.setCount (0);
 
-  //encoderspeed.attachHalfQuad ( DT_04, CLK_04);
+  //encoderspeed.attachFullQuad (B_04, A_04);
   //encoderspeed.setCount (0);
   
 }
@@ -1219,7 +1233,7 @@ void loop()
   }
 
 /**********************************************************************************************************************************************************************************************
-    V
+  in Arbeit
 **********************************************************************************************************************************************************************************************/
 
 //lrButton
@@ -1266,21 +1280,57 @@ void loop()
   //Drehgeber initialisieren (oben)
   //Counter des Drehgebers lesen und in mb schreiben 
   
-  long Positionleft = encoderleft.getCount() / 2;
-  //Serial.println(Positionleft); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
-  mb.left = Positionleft;
+  long Positionleft = encoderleft.getCount();
+  long Positionleft1;
 
-  long Positionright = encoderright.getCount() / 2;
-  //Serial.println(Positionright); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
-  mb.right = Positionright;
+  if (0 < Positionleft < leftmax){
+    Positionleft1 = Positionleft;
+  }
+  else if(Positionleft >= leftmax){
+    Positionleft1 = leftmax;
+  }
+  else /*(Positionleft <= 0)*/{
+    Positionleft1 = 0;
+  }
+  
+  Serial.println(Positionleft1); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
+  mb.left = Positionleft1;
 
-  long Positionangle = encoderangle.getCount() / 2;
-  //Serial.println(Positionangle); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
+
+  long Positionright = encoderright.getCount();
+  long Positionright1;
+
+  if (0 < Positionright < rightmax){
+    Positionright1 = Positionright;
+  }
+  else if(Positionright >= rightmax){
+    Positionright1 = rightmax;
+  }
+  else /*(Positionright <= 0)*/{
+    Positionright1 = 0;
+  }
+
+  Serial.println(Positionright1); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
+  mb.right = Positionright1;
+
+  long Positionangle = encoderangle.getCount();
+  Serial.println(Positionangle); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
   mb.angle = Positionangle;
 
-  //long Positionspeed = encoderspeed.getCount() / 2;
-  //Serial.println(Positionspeed);
-  //mb.speed = Positionspeed;
+  //long Positionspeed = encoderspeed.getCount();
+  //long Positionspeed1;
+  
+  /* if (0 < Positionspeed < speedmax){
+    Positionspeed1 = Positionspeed;
+  }
+  else if(Positionspeed >= speedmax){
+    Positionspeed1 = speedmax;
+  }
+  else {
+    Positionspeed1 = 0;
+  }*/
+  //Serial.println(Positionspeed1);
+  //mb.speed = Positionspeed1;
 
   ArduinoOTA.handle();
   int received = toCOVER.parsePacket();
@@ -1317,8 +1367,11 @@ void loop()
   {
     toCOVER.beginPacket(coverIP, pluginPort);
     toCOVER.write((const uint8_t *)&mb, sizeof(mb));
+    Serial.println(coverIP);
+    Serial.println(pluginPort);
+    Serial.println(sizeof(mb));
     toCOVER.endPacket();
-    
+
     lastWorkingTime=frameTime;
     
   digitalWrite(LED_BUILTIN, LED_ON);
