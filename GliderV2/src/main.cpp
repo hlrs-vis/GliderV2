@@ -57,7 +57,7 @@ ESP32Encoder encoderright;
 ESP32Encoder encoderangle;
 //ESP32Encoder encoderspeed;
 
-int leftmax = 1800, rightmax = 1800, speedmax = 1800;
+int leftmax = 1400, rightmax = 1400, speedmax = 1400;
 
 
 //See file .../hardware/espressif/esp32/variants/(esp32|doitESP32devkitV1)/pins_arduino.h
@@ -1310,11 +1310,11 @@ void loop()
     Positionright1 = 0;
   }
 
-  Serial.println(Positionright1); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Überblick zu bekommen
+  Serial.println(Positionright1); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
   mb.right = Positionright1;
 
   long Positionangle = encoderangle.getCount();
-  Serial.println(Positionangle); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Überblick zu bekommen
+  Serial.println(Positionangle); // braucht es nicht für das Programm. Nur um auf dem Serial Monitor einen groben Übnerblick zu bekommen
   mb.angle = Positionangle;
 
   //long Positionspeed = encoderspeed.getCount();
