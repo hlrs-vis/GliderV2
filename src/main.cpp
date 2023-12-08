@@ -57,7 +57,7 @@ ESP32Encoder encoderright;
 ESP32Encoder encoderangle;
 //ESP32Encoder encoderspeed;
 
-int leftmax = 1400, rightmax = 1400, speedmax = 1400
+int leftmax = 1400, rightmax = 1400, speedmax = 1400;
 
 
 //See file .../hardware/espressif/esp32/variants/(esp32|doitESP32devkitV1)/pins_arduino.h
@@ -116,8 +116,6 @@ int leftmax = 1400, rightmax = 1400, speedmax = 1400
 #define PIN_SCL 22 // Pin SCL mapped to pin GPIO22/SCL of ESP32
 #define PIN_SDA 21 // Pin SDA mapped to pin GPIO21/SDA of ESP32
 
-void doSleep();
-
 /*
 // HX711 circuit wiring
 const int S0_DOUT_PIN = 32;
@@ -147,6 +145,8 @@ debounceButton angleButton(anglePin);
 
 //const int speedPin = ??;
 //debounceButton speedButton(speedPin);
+
+void doSleep();
 
 void toggleLED()
 {
@@ -1283,7 +1283,7 @@ void loop()
   long Positionleft = encoderleft.getCount();
   long Positionleft1;
 
-  if (0 < Positionleft < leftmax){
+  if (0 < Positionleft < leftmax){ 
     Positionleft1 = Positionleft;
   }
   else if(Positionleft >= leftmax){
